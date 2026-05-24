@@ -345,9 +345,11 @@
                 <p class="subtitle">Manage system users, roles, and permissions</p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{route('create')}}" class="btn btn-create">
-                    <i class="fa fa-plus"></i> Create New User
-                </a>
+                @if(auth()->check() && auth()->user()->hasRole('admin'))
+                    <a href="{{ route('create') }}" class="btn btn-create">
+                        <i class="fa fa-plus"></i> Create New User
+                    </a>
+                @endif
             </div>
         </div>
     </div>

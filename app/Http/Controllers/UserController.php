@@ -19,7 +19,15 @@ class UserController extends Controller
     /* ===================== USERS LIST ===================== */
     public function users(Request $request)
     {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
         $query = User::query();
+
+        if (!auth()->user()->hasRole('admin')) {
+            $query->where('id', auth()->id());
+        }
 
         if ($request->filled('search')) {
             $query->where(function ($q) use ($request) {
