@@ -878,7 +878,7 @@
 
                         <div class="col-md-2">
                             <label class="form-label">Asset Type</label>
-                            <select name="product_search" class="form-control form-control-sm select2-filter">
+                            <select name="product_search" id="product_search" class="form-control form-control-sm select2-filter">
                                 <option value="">All Types</option>
                                 @foreach ($all_product_types as $Type)
                                     <option value="{{ $Type->id }}"
@@ -891,7 +891,7 @@
 
                         <div class="col-md-2">
                             <label class="form-label">Company</label>
-                            <select name="company_filter" class="form-control form-control-sm select2-filter">
+                            <select name="company_filter" id="company_filter" class="form-control form-control-sm select2-filter">
                                 <option value="">All Companies</option>
                                 @foreach ($all_company as $allcompany)
                                     <option value="{{ $allcompany->id }}"
@@ -1641,11 +1641,50 @@
     <!-- JsBarcode Library for Barcodes -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script>
+        // Custom matcher function for select2 search
+        function matchCustom(params, data) {
+            // If there are no search terms, return all data
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+
+            // Do not display the item if there is no 'text' property
+            if (typeof data.text === 'undefined') {
+                return null;
+            }
+
+            // Match the text
+            if (data.text.toLowerCase().indexOf(params.term.toLowerCase()) > -1) {
+                var modifiedData = $.extend({}, data, true);
+                return modifiedData;
+            }
+
+            // Return null if the term does not match
+            return null;
+        }
+
         $(document).ready(function() {
-            // Initialize Select2
+            // Initialize Select2 for filter dropdowns with search
             $('#product_search').select2({
-                placeholder: "All Types",
-                allowClear: true
+                placeholder: "Search Asset Type",
+                allowClear: true,
+                width: '100%',
+                matcher: matchCustom
+            });
+
+            $('#company_filter').select2({
+                placeholder: "Search Company",
+                allowClear: true,
+                width: '100%',
+                matcher: matchCustom
+            });
+
+            // Initialize all select2-filter elements
+            $('.select2-filter').select2({
+                placeholder: "Select an option",
+                allowClear: true,
+                width: '100%',
+                matcher: matchCustom
             });
 
             $('#empl_id').select2({

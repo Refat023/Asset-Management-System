@@ -114,7 +114,7 @@ public function store(Request $request)
         'all_status'         => Status::all(),
         'all_supplier'       => Supplier::all(),
         'all_company'        => Company::all(),
-        'employee'           => Employee::all(),
+        'employee'           => Employee::where('status', 'Active')->get(),
         'all_issue'          => Issue::all(),
     ]);
 }
@@ -162,7 +162,7 @@ public function store(Request $request)
             'location' => $request->department_id,
             'company_id' => $request->company_id,
             'others' => $request->others,
-            'checkstatus' => $request->checkstatus,
+            'checkstatus' => $request->checkstatus ?? 'INSTOCK',
             'others2' => $request->others2,
             'created_at' => Carbon::now(),
         ]);
@@ -239,7 +239,7 @@ public function store(Request $request)
             'all_product_types' => ProductType::all(),
             'all_brands' => Brand::all(),
             'all_company' => Company::all(),
-            'employee' => Employee::all(),
+            'employee' => Employee::where('status', 'Active')->get(),
             'all_issue' => Issue::all(),
         ]);
     }
@@ -306,7 +306,7 @@ public function store(Request $request)
             'all_product_types' => ProductType::all(),
             'all_brands' => Brand::all(),
             'all_company' => Company::all(),
-            'employee' => Employee::all(),
+            'employee' => Employee::where('status', 'Active')->get(),
             'all_issue' => Issue::all(),
         ]);
     }
@@ -389,7 +389,7 @@ public function store(Request $request)
             'all_product_types' => ProductType::all(),
             'all_brands' => Brand::all(),
             'all_company' => Company::all(),
-            'employee' => Employee::all(),
+            'employee' => Employee::where('status', 'Active')->get(),
             'all_issue' => Issue::all(),
         ]);
     }
@@ -470,7 +470,7 @@ public function store(Request $request)
             'all_product_types' => ProductType::all(),
             'all_brands' => Brand::all(),
             'all_company' => Company::all(),
-            'employee' => Employee::all(),
+            'employee' => Employee::where('status', 'Active')->get(),
             'all_issue' => Issue::all(),
         ]);
     }
@@ -580,7 +580,7 @@ public function store(Request $request)
         $departments = Department::all();
         $designation = Designation::all();
         $stores = Store::all();
-        $employee = Employee::all();
+        $employee = Employee::where('status', 'Active')->get();
 
         return view('admin.store.issue', [
             'store' => $store, // 👈 single store data
@@ -1535,7 +1535,7 @@ public function store(Request $request)
             'all_product_types' => ProductType::all(),
             'all_brands' => Brand::all(),
             'all_company' => Company::all(),
-            'employee' => Employee::all(),
+            'employee' => Employee::where('status', 'Active')->get(),
             'all_issue' => Issue::all(),
         ]);
     }

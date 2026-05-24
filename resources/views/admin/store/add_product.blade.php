@@ -167,6 +167,7 @@
                                                 <option value="{{ $company->id }}">{{ $company->company }}</option>
                                             @endforeach
                                         </select>
+                                        <input type="hidden" name="checkstatus" value="INSTOCK">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
