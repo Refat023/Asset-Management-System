@@ -428,6 +428,9 @@
                     <th>User</th>
                     <th>Status</th>
                     <th>Roles</th>
+                    <th>Total Login</th>
+                    <th>Login Status</th>
+                    <th>Last Login</th>
                     <th>Joined</th>
                     <th>Last Active</th>
                     <th>Actions</th>
@@ -466,6 +469,25 @@
                         @endforeach
                         @if($user->getRoleNames()->isEmpty())
                             <span class="text-muted">No role assigned</span>
+                        @endif
+                    </td>
+                    <td>
+                        {{ $loginStats[$user->id]->total_logins ?? 0 }}
+                    </td>
+                    <td>
+                        @php
+                            $userLoginStats = $loginStats->get($user->id);
+                            $status = ($userLoginStats && $userLoginStats->has_active_session) ? 'Online' : 'Offline';
+                        @endphp
+                        <span class="badge badge-{{ $status === 'Online' ? 'success' : 'secondary' }}">
+                            {{ $status }}
+                        </span>
+                    </td>
+                    <td>
+                        @if($userLoginStats && $userLoginStats->last_login_at)
+                            {{ \Carbon\Carbon::parse($userLoginStats->last_login_at)->format('M d, Y h:i A') }}
+                        @else
+                            <span class="text-muted">N/A</span>
                         @endif
                     </td>
                     <td>{{ $user->created_at->format('M d, Y') }}</td>

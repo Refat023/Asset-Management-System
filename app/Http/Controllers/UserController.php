@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +31,18 @@ class UserController extends Controller
         $users = $query->latest()->get();
         $total_user = User::count();
 
-        return view('admin.users.users_list', compact('users', 'total_user'));
+        $loginStats = UserLog::select(
+                'user_id',
+                DB::raw('COUNT(*) as total_logins'),
+                DB::raw('MAX(CASE WHEN logout_at IS NULL THEN 1 ELSE 0 END) as has_active_session'),
+                DB::raw('MAX(login_at) as last_login_at')
+            )
+            ->where('action', 'login')
+            ->groupBy('user_id')
+            ->get()
+            ->keyBy('user_id');
+
+        return view('admin.users.users_list', compact('users', 'total_user', 'loginStats'));
     }
 
     /* ===================== CREATE USER ===================== */

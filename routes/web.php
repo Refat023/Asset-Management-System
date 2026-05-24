@@ -11,6 +11,7 @@ use App\Http\Controllers\PeopleController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserLogController;
 use App\Models\Desktop;
 use App\Models\Employee;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,13 @@ Route::post('/users/{user_id}/profile/update', [UserController::class, 'users_pr
 // Password Management Routes
 Route::get('/users/{user_id}/password/edit', [UserController::class, 'users_password_edit'])->name('users.password.edit');
 Route::post('/users/{user_id}/password/update', [UserController::class, 'users_password_update'])->name('users.password.update');
+
+// User Login Logs Routes
+Route::get('/user-logs', [UserLogController::class, 'index'])->name('user.logs.index')->middleware('role_or_permission:admin|view-logs');
+Route::get('/user-logs/my-logs', [UserLogController::class, 'myLogs'])->name('user.logs.my')->middleware('auth');
+Route::get('/user-logs/user/{userId}', [UserLogController::class, 'userLogs'])->name('user.logs.user')->middleware('role_or_permission:admin|view-logs');
+Route::get('/user-logs/export', [UserLogController::class, 'export'])->name('user.logs.export')->middleware('role_or_permission:admin|view-logs');
+Route::get('/login-dashboard', [UserLogController::class, 'dashboard'])->name('login.dashboard')->middleware('auth');
 
 //Role
 Route::get('/roles', [RoleController::class, 'roles'])->name('roles.index')->middleware('role_or_permission:admin|role-list');
