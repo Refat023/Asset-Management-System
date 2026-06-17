@@ -34,7 +34,7 @@
                 <td>{{ $store->products_id }}</td>
                 <td>{{ $store->rel_to_ProductType->product }}</td>
                 <td>{{ $store->model }}</td>
-                <td>{{ $store->rel_to_brand->brand_name }}</td>
+                <td></td>
                 <td>{{ $store->description }}</td>
                 <td>{{ $store->asset_sl_no }}</td>
                 <td>{{ $store->qty }}</td>
