@@ -14,7 +14,7 @@
             <th>Durablity</th>
             <th>Cost</th>
             <th>Currency</th>
-            <th>Vendor</th>
+            <!-- <th>Vendor</th> -->
             <th>Purchase Date</th>
             <th>Challan_no</th>
             <th>Status</th>
@@ -43,7 +43,7 @@
                 <td>{{ $store->durablity }}</td>
                 <td>{{ $store->cost }}</td>
                 <td>{{ $store->currency }}</td>
-                <td>{{ $store->rel_to_Supplier->supplier_name }}</td>
+                <td></td>
                 <td>{{ $store->purchase_date }}</td>
                 <td>{{ $store->challan_no }}</td>
                 <td>{{ $store->rel_to_Status->status_name }}</td>
