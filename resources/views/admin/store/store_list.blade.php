@@ -1173,8 +1173,8 @@
                                 <input type="text" id="company" class="form-control" name="others" readonly>
                             </div>
                             <div class="col-md-12 mb-3">
-                                <label class="form-label">Select Employee</label>
-                                <select id="empl_id" name="emp_id" class="form-control select2">
+                                <label class="form-label">Select Employee *</label>
+                                <select id="empl_id" name="emp_id" class="form-control select2" required>
                                     <option value="" selected disabled>-- Select Employee --</option>
                                     @foreach ($employee as $emp)
                                         <option value="{{ $emp->emp_id }}" data-emp_id="{{ $emp->id }}">
@@ -1198,7 +1198,7 @@
                                     readonly>
                             </div>
                             <div class="col-md-6 ">
-                                <label class="form-label">Issue Date</label>
+                                <label class="form-label">Issue Date *</label>
                                 <input type="date" id="issue_date" class="form-control" name="issue_date" required>
                             </div>
                         </div>
