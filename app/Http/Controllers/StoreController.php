@@ -1733,6 +1733,13 @@ public function store(Request $request)
             'others1' => $request->others1,
             'created_at' => Carbon::now(),
         ]);
+
+        if (!empty($request->asset_tag)) {
+            Store::where('asset_tag', $request->asset_tag)
+                ->whereIn('checkstatus', ['INSTOCK', 'MAINTENANCE', 'Wast Products'])
+                ->update(['checkstatus' => 'Wast Products']);
+        }
+
         return redirect()->back()->with('success_wast', 'Waste product saved successfully.');
     }
 
@@ -1851,7 +1858,15 @@ public function store(Request $request)
 
     function wastproduct_delete($id)
     {
-        WastProduct::find($id)->delete();
+        $wasteRecord = WastProduct::findOrFail($id);
+
+        if (!empty($wasteRecord->asset_tag)) {
+            Store::where('asset_tag', $wasteRecord->asset_tag)
+                ->where('checkstatus', 'Wast Products')
+                ->update(['checkstatus' => 'INSTOCK']);
+        }
+
+        $wasteRecord->delete();
         return back()->with('delete_success', 'Wast Product deleted successfully!');
     }
 

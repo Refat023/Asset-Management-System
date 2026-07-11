@@ -5,7 +5,7 @@
     <div class="col-lg-6 m-auto">
         <div class="card">
             <div class="card-header">
-                <h3>Update Wast Product Info</h3>
+                <h3>Update Waste Product Info</h3>
             </div>
             <div class="card-body">
 

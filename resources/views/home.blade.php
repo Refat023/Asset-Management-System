@@ -255,7 +255,7 @@
                                         <th>Total Asset</th>
                                         <th>Units</th>
                                         <th>Issue Qty</th>
-                                        <th>Wast Product</th>
+                                        <th>Waste Product</th>
                                         <th>Stock Qty</th>
                                     </tr>
                                 </thead>
@@ -292,7 +292,7 @@
                                         <th>Total Asset</th>
                                         <th>Units</th>
                                         <th>Issue Qty</th>
-                                        <th>Wast Product</th>
+                                        <th>Waste Product</th>
                                         <th>Stock Qty</th>
                                     </tr>
                                 </thead>
@@ -329,7 +329,7 @@
                                         <th>Total Asset</th>
                                         <th>Units</th>
                                         <th>Issue Qty</th>
-                                        <th>Wast Product</th>
+                                        <th>Waste Product</th>
                                         <th>Stock Qty</th>
                                     </tr>
                                 </thead>
@@ -370,7 +370,7 @@
                                         <th>Total Asset</th>
                                         <th>Units</th>
                                         <th>Issue Qty</th>
-                                        <th>Wast Product</th>
+                                        <th>Waste Product</th>
                                         <th>Stock Qty</th>
                                     </tr>
                                 </thead>

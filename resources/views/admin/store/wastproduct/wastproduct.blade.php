@@ -14,8 +14,8 @@
                 @endif
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="font-weight-bolder">Wast Product</h4>
-                        <p class="mb-0">Enter All information to Waste Product</p>
+                        <h4 class="font-weight-bolder">Waste Product</h4>
+                        <p class="mb-0">Enter all information for the waste product</p>
                     </div>
 
                     <div class="card-body">

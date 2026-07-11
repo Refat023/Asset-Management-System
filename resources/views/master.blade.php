@@ -99,7 +99,7 @@
                                         <li><a href="{{ route('maintenance_view') }}"><i
                                                     class="fa fa-gears"></i>Maintenance
                                                 List</a></li>
-                                        <li><a href="{{ route('wastproduct_list') }}"><i class="fa fa-gears"></i>Wast
+                                        <li><a href="{{ route('wastproduct_list') }}"><i class="fa fa-gears"></i>Waste
                                                 Product</a></li>
                                         <li><a href="{{ route('stock_summary') }}"><i class="fa fa-bar-chart-o"></i>Stock Summary</a></li>
                                     </ul>
