@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Image;
 use App\Models\Desktop;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\StoreExport;
 use App\Exports\TransferExport;
@@ -36,6 +37,43 @@ use App\Imports\StoreImport;
 
 class StoreController extends Controller
 {
+    private function hasGlobalAttirePermission($role): bool
+    {
+        if (!$role) {
+            return false;
+        }
+
+        $globalPermissions = [
+            'view global attire',
+            'view global attire ltd.',
+            'view global attire ltd',
+            'view global_attire',
+        ];
+
+        foreach ($globalPermissions as $permissionName) {
+            if ($role->hasPermissionTo($permissionName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function getAllowedCompanyIdsForRole($role): array
+    {
+        if ($this->hasGlobalAttirePermission($role)) {
+            return [];
+        }
+
+        $companies = [];
+        if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
+        if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
+        if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
+        if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+
+        return $companies;
+    }
+
 public function store(Request $request)
 {
     $role = auth()->user()->roles[0];
@@ -49,18 +87,23 @@ public function store(Request $request)
     $showDeleted    = $request->input('show_deleted', false);
 
     // Determine which companies the user can view
-    $companies = [];
-    if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
-    if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
-    if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
-    if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+    $companies = $this->getAllowedCompanyIdsForRole($role);
 
     // Base query
     $query = Store::query()
         ->join('brands', 'brands.id', '=', 'stores.brand_id')
         ->join('product_types', 'product_types.id', '=', 'stores.asset_type')
-        ->whereIn('stores.company_id', $companies)
         ->whereNotIn('stores.checkstatus', ['DELETE', 'ARCHIVE']);
+
+    if ($this->hasGlobalAttirePermission($role)) {
+        if (Schema::hasColumn('stores', 'created_by')) {
+            $query->where('stores.created_by', auth()->id());
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+    } else {
+        $query->whereIn('stores.company_id', $companies);
+    }
 
     // Company filter
     if ($companyFilter) {
@@ -164,6 +207,7 @@ public function store(Request $request)
             'others' => $request->others,
             'checkstatus' => $request->checkstatus ?? 'INSTOCK',
             'others2' => $request->others2,
+            'created_by' => auth()->id(),
             'created_at' => Carbon::now(),
         ]);
         if ($request->file('picture')) {
@@ -178,6 +222,68 @@ public function store(Request $request)
         return redirect()->route('instock_list')->with('success', 'Product added...!');
     }
 
+    public function storeListApi(Request $request)
+    {
+        $query = Store::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('asset_tag', 'LIKE', "%{$request->search}%")
+                  ->orWhere('model', 'LIKE', "%{$request->search}%")
+                  ->orWhere('vendor', 'LIKE', "%{$request->search}%")
+                  ->orWhere('asset_sl_no', 'LIKE', "%{$request->search}%");
+            });
+        }
+
+        $stores = $query
+            ->orderBy('id', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $stores,
+        ]);
+    }
+
+    public function storeStoreApi(Request $request)
+    {
+        $request->validate([
+            'asset_tag' => 'required|unique:stores,asset_tag',
+        ]);
+
+        $payload = $request->only([
+            'asset_tag',
+            'asset_type',
+            'model',
+            'brand_id',
+            'description',
+            'asset_sl_no',
+            'qty',
+            'units_id',
+            'warrenty',
+            'durablity',
+            'cost',
+            'currency',
+            'vendor',
+            'purchase_date',
+            'challan_no',
+            'status_id',
+            'company_id',
+            'others',
+            'others2',
+        ]);
+
+        $payload['location'] = $request->input('location', $request->input('department_id'));
+        $payload['checkstatus'] = $request->input('checkstatus', 'INSTOCK');
+
+        $store = Store::create($payload);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Store created successfully',
+            'data' => $store,
+        ], 201);
+    }
 
     //Store INSTOCK list start
     function instock_list(Request $request)
@@ -190,17 +296,22 @@ public function store(Request $request)
         $perPage = $request->input('per_page', session('asset_per_page', 10));
         session(['asset_per_page' => $perPage]);
 
-        $companies = [];
-        if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
-        if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
-        if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
-        if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+        $companies = $this->getAllowedCompanyIdsForRole($role);
 
         $query = Store::query()
             ->join('brands', 'brands.id', '=', 'stores.brand_id')
             ->join('product_types', 'product_types.id', '=', 'stores.asset_type')
-            ->whereIn('stores.company_id', $companies)
-            ->where('stores.checkstatus', 'INSTOCK'); // Only deleted
+            ->where('stores.checkstatus', 'INSTOCK');
+
+        if ($this->hasGlobalAttirePermission($role)) {
+            if (Schema::hasColumn('stores', 'created_by')) {
+                $query->where('stores.created_by', auth()->id());
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        } else {
+            $query->whereIn('stores.company_id', $companies);
+        }
 
         if ($companyFilter) {
             $query->where('stores.company_id', $companyFilter);

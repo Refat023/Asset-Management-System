@@ -655,10 +655,18 @@ function isBootstrapAvailable() {
 // Show Modal with fallback
 function showModal(modalElement) {
     if (isBootstrapAvailable()) {
-        const modal = new bootstrap.Modal(modalElement);
+        let modal = null;
+
+        if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+            modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        } else if (typeof bootstrap.Modal.getInstance === 'function') {
+            modal = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+        } else {
+            modal = new bootstrap.Modal(modalElement);
+        }
+
         modal.show();
-    } else {
-        // Fallback for older Bootstrap or jQuery
+    } else if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal === 'function') {
         $(modalElement).modal('show');
     }
 }
@@ -666,12 +674,21 @@ function showModal(modalElement) {
 // Hide Modal with fallback
 function hideModal(modalElement) {
     if (isBootstrapAvailable()) {
-        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        let modalInstance = null;
+
+        if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+            modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+        } else if (typeof bootstrap.Modal.getInstance === 'function') {
+            modalInstance = bootstrap.Modal.getInstance(modalElement);
+        }
+
         if (modalInstance) {
             modalInstance.hide();
+        } else if (typeof bootstrap.Modal === 'function') {
+            const fallbackModal = new bootstrap.Modal(modalElement);
+            fallbackModal.hide();
         }
-    } else {
-        // Fallback for older Bootstrap or jQuery
+    } else if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal === 'function') {
         $(modalElement).modal('hide');
     }
 }
@@ -1134,8 +1151,10 @@ function submitUserUpdate(formData, userId) {
     submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Updating...';
     submitBtn.disabled = true;
 
+    formData.append('_method', 'PUT');
+
     fetch(`/users/${userId}/update`, {
-        method: 'POST', // Laravel expects POST with _method=PUT
+        method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'X-Requested-With': 'XMLHttpRequest',

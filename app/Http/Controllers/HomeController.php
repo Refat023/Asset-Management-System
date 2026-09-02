@@ -32,18 +32,46 @@ class HomeController extends Controller
         $role = auth()->user()->roles[0];
 
         $isAdminManager = in_array($role->name, ['Admin', 'Manager']);
+        $hasGlobalAttire = false;
 
         if ($isAdminManager) {
-            $companies = [1, 2, 3, 4];
+            $companies = [1, 2, 3, 4, 5];
         } else {
             $companies = [];
-            if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
-            if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
-            if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
-            if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+            $globalPermissions = [
+                'view global attire',
+                'view global attire ltd.',
+                'view global attire ltd',
+                'view global_attire',
+            ];
+
+            foreach ($globalPermissions as $permissionName) {
+                if ($role->hasPermissionTo($permissionName)) {
+                    $hasGlobalAttire = true;
+                    $companies = [1, 2, 3, 4, 5];
+                    break;
+                }
+            }
+
+            if (empty($companies)) {
+                if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
+                if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
+                if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
+                if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+            }
         }
 
-        $query = $isAdminManager ? Store::query() : Store::whereIn('company_id', $companies);
+        if ($isAdminManager) {
+            $query = Store::query();
+        } else {
+            $query = empty($companies)
+                ? Store::whereRaw('1 = 0')
+                : Store::whereIn('company_id', $companies);
+        }
+
+        if ($hasGlobalAttire) {
+            $query->where('created_by', auth()->id());
+        }
 
         if ($request->filled('asset_type')) {
             $query->where('asset_type', $request->asset_type);
@@ -61,23 +89,69 @@ class HomeController extends Controller
             $employeeCount = DB::table('employees')->where('status', 'Active')->count();
             $userCount = DB::table('users')->count();
         } else {
-            $assetCount = Store::whereIn('company_id', $companies)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE'])->count();
-            $laptopCount = Store::whereIn('company_id', $companies)->where('asset_type', 1)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE'])->count();
-            $desktopCount = Store::whereIn('company_id', $companies)->where('asset_type', 2)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE'])->count();
-            $printerCount = Store::whereIn('company_id', $companies)->where('asset_type', 4)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE'])->count();
+            $assetQuery = Store::query()->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE']);
+            $laptopQuery = Store::query()->where('asset_type', 1)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE']);
+            $desktopQuery = Store::query()->where('asset_type', 2)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE']);
+            $printerQuery = Store::query()->where('asset_type', 4)->whereNotIn('checkstatus', ['DELETE', 'ARCHIVE']);
 
-            $employeeCount = DB::table('employees')->whereIn('company', $companies)->where('status', 'Active')->count();
+            if ($hasGlobalAttire) {
+                $assetQuery->where('created_by', auth()->id());
+                $laptopQuery->where('created_by', auth()->id());
+                $desktopQuery->where('created_by', auth()->id());
+                $printerQuery->where('created_by', auth()->id());
+            } else {
+                $assetQuery->whereIn('company_id', $companies);
+                $laptopQuery->whereIn('company_id', $companies);
+                $desktopQuery->whereIn('company_id', $companies);
+                $printerQuery->whereIn('company_id', $companies);
+            }
+
+            $assetCount = empty($companies) ? 0 : $assetQuery->count();
+            $laptopCount = empty($companies) ? 0 : $laptopQuery->count();
+            $desktopCount = empty($companies) ? 0 : $desktopQuery->count();
+            $printerCount = empty($companies) ? 0 : $printerQuery->count();
+
+            $employeeCount = empty($companies)
+                ? 0
+                : DB::table('employees')->whereIn('company', $companies)->where('status', 'Active')->count();
             $userCount = DB::table('users')->count();
         }
 
         if ($isAdminManager) {
-            $desktops = DB::select("SELECT * FROM stores WHERE asset_type = 2");
-            $laptops = DB::select("SELECT * FROM stores WHERE asset_type = 1");
-            $printers = DB::select("SELECT * FROM stores WHERE asset_type = 3");
+            $desktops = DB::table('stores')->where('asset_type', 2)->get();
+            $laptops = DB::table('stores')->where('asset_type', 1)->get();
+            $printers = DB::table('stores')->where('asset_type', 3)->get();
         } else {
-            $desktops = DB::select("SELECT * FROM stores WHERE asset_type = 2 AND company_id IN (" . implode(',', $companies) . ")");
-            $laptops = DB::select("SELECT * FROM stores WHERE asset_type = 1 AND company_id IN (" . implode(',', $companies) . ")");
-            $printers = DB::select("SELECT * FROM stores WHERE asset_type = 3 AND company_id IN (" . implode(',', $companies) . ")");
+            if (empty($companies)) {
+                $desktops = [];
+                $laptops = [];
+                $printers = [];
+            } else {
+                $desktops = DB::table('stores')
+                    ->where('asset_type', 2)
+                    ->whereIn('company_id', $companies)
+                    ->get();
+                $laptops = DB::table('stores')
+                    ->where('asset_type', 1)
+                    ->whereIn('company_id', $companies)
+                    ->get();
+                $printers = DB::table('stores')
+                    ->where('asset_type', 3)
+                    ->whereIn('company_id', $companies)
+                    ->get();
+            }
+        }
+        $product_summary_global_attire = [];
+        if ($hasGlobalAttire) {
+            $product_summary_global_attire = DB::select(
+                'SELECT asset_type, units_id, COUNT(*) as TotalAssets, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as IssueQty, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as WastProduct, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as StockQty FROM stores WHERE company_id = 5 AND created_by = ? AND checkstatus NOT IN (?, ?) GROUP BY asset_type, units_id',
+                ['ISSUED', 'Wast Products', 'INSTOCK', auth()->id(), 'DELETE', 'ARCHIVE']
+            );
+
+            foreach ($product_summary_global_attire as $product_summary) {
+                $product_summary->asset_type = ProductType::find($product_summary->asset_type);
+                $product_summary->units = SizeMaseurment::find($product_summary->units_id);
+            }
         }
         $product_summary_bt = DB::select("CALL sp_product_summary_bt()");
         $product_summary_bhml = DB::select("CALL sp_product_summary_bhml()");
@@ -131,6 +205,7 @@ class HomeController extends Controller
             'product_summary_bhml' => $product_summary_bhml,
             'product_summary_bp' => $product_summary_bp,
             'product_summary_bt_ind' => $product_summary_bt_ind,
+            'product_summary_global_attire' => $product_summary_global_attire,
             'assetCount' => $assetCount,
             'laptopCount' => $laptopCount,
             'desktopCount' => $desktopCount,

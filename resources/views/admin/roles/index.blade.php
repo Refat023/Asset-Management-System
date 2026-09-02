@@ -17,6 +17,7 @@
                         <div class="card-body">
 
                             <a href="{{ route('roles.create') }}" class="btn btn-info">Create Role</a>
+                            <a href="{{ route('permissions.index') }}" class="btn btn-warning">Manage Permission</a>
                             <table class="table table-striped table-bordered">
                                 <tr>
                                     <th>SL</th>

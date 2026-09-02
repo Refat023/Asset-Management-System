@@ -390,6 +390,44 @@
                         </div>
                     </div>
                 </div>
+
+                @if (!empty($product_summary_global_attire))
+                    <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                <a href="{{ route('stock_summary', ['company' => 5]) }}" style="text-decoration: none; cursor: pointer;" class="text-dark company-link">
+                                    <h2 class="h5" style="margin: 0; transition: color 0.3s;">GLOBAL ATIRE</h2>
+                                </a>
+                            </div>
+                            <div class="card-body scrollable" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-striped table-bordered">
+                                    <thead class="bg-info text-white">
+                                        <tr>
+                                            <th>Asset Name</th>
+                                            <th>Total Asset</th>
+                                            <th>Units</th>
+                                            <th>Issue Qty</th>
+                                            <th>Waste Product</th>
+                                            <th>Stock Qty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($product_summary_global_attire as $product_summary)
+                                            <tr>
+                                                <td>{{ $product_summary->asset_type->product }}</td>
+                                                <td>{{ $product_summary->TotalAssets }}</td>
+                                                <td>{{ $product_summary->units->size }}</td>
+                                                <td>{{ $product_summary->IssueQty }}</td>
+                                                <td>{{ $product_summary->WastProduct }}</td>
+                                                <td>{{ $product_summary->StockQty }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 

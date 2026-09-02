@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Store extends Model
 {
     use HasFactory;
-    protected $fillable = ['asset_type', 'model', 'brand_id','description', 'asset_sl_no', 'qty', 'units_id','warrenty', 'durablity', 'cost', 'currency', 'vendor', 'purchase_date', 'challan_no', 'picture', 'status_id', 'location', 'company_id', 'others', 'checkstatus'];
+    protected $fillable = ['asset_tag', 'asset_type', 'model', 'brand_id','description', 'asset_sl_no', 'qty', 'units_id','warrenty', 'durablity', 'cost', 'currency', 'vendor', 'purchase_date', 'challan_no', 'picture', 'status_id', 'location', 'company_id', 'others', 'checkstatus', 'others2', 'created_by'];
 
     function rel_to_ProductType(){
         return $this->belongsTo(ProductType::class, 'asset_type');

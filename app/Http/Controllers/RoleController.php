@@ -25,11 +25,83 @@ class RoleController extends Controller
             return $next($request);
         });
     }
+
+    private function normalizeRolePermissions(Request $request): array
+    {
+        $permissions = $request->input('permission', []);
+
+        if (!is_array($permissions)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', $permissions), function ($permission) {
+            return $permission !== '';
+        }));
+    }
+
+    private function addRolePermission(Role $role, Request $request): void
+    {
+        $role->syncPermissions($this->normalizeRolePermissions($request));
+    }
     
     public function roles()
     {   
         $roles = Role::all();
         return view("admin.roles.index", compact("roles"));
+    }
+
+    public function permissions()
+    {
+        $permissions = Permission::all();
+        return view("admin.roles.permissions.index", compact("permissions"));
+    }
+
+    public function permissions_create()
+    {
+        return view("admin.roles.permissions.create");
+    }
+
+    public function permissions_store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:permissions,name',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => trim($request->name),
+        ]);
+
+        return redirect()->route('permissions.index')
+            ->with('season', 'Permission Created!');
+    }
+
+    public function permissions_edit($id)
+    {
+        $permission = Permission::findOrFail($id);
+        return view('admin.roles.permissions.edit', compact('permission'));
+    }
+
+    public function permissions_update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:permissions,name,' . $id,
+        ]);
+
+        $permission = Permission::findOrFail($id);
+        $permission->name = trim($request->name);
+        $permission->save();
+
+        return redirect()->route('permissions.index')
+            ->with('season', 'Permission Updated!');
+    }
+
+    public function permissions_destroy($id)
+    {
+        $permission = Permission::findOrFail($id);
+        $permission->delete();
+
+        return redirect()->route('permissions.index')
+            ->with('season', 'Permission Deleted!');
     }
 
     /**
@@ -39,7 +111,7 @@ class RoleController extends Controller
      */
     public function roles_create()
     {
-        $permission = permission::all();
+        $permission = Permission::all();
         return view("admin.roles.create", compact("permission"));
     }
 
@@ -50,12 +122,16 @@ class RoleController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function roles_store(Request $request)
-    {   
-         $role = Role::create(["name"=>$request->name]);
-         $role->syncPermissions($request->permision);
+    {
+         $request->validate([
+             'name' => 'required|string|max:255|unique:roles,name',
+         ]);
+
+         $role = Role::create(["name" => trim($request->name)]);
+         $this->addRolePermission($role, $request);
+
          return redirect()->route("roles.index")
                          ->with("season", "Role Created!");
-
     }
 
     /**
@@ -78,7 +154,7 @@ class RoleController extends Controller
     public function edit($id)
     {
         $role = Role::find($id);
-        $permission = permission::all();
+        $permission = Permission::all();
         return view("admin.roles.role_edit", compact("role", "permission"));
     }
 
@@ -93,9 +169,9 @@ class RoleController extends Controller
     {
 
        $role = Role::find($id);
-       $role->name=$request->name;
+       $role->name = trim($request->name);
        $role->save();
-       $role->syncPermissions($request->permision);
+       $this->addRolePermission($role, $request);
 
        return redirect()->route("roles.index")
        ->with("season", "Role Updated!");

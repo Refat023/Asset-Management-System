@@ -78,6 +78,12 @@ Route::get('/roles/edit/{role_id}', [RoleController::class, 'edit'])->name('role
 Route::put('/roles/update/{id}', [RoleController::class, 'roles_update'])->name('roles_update')->middleware('role_or_permission:admin|role-edit');
 Route::get('/roles/destroy/{role_id}', [RoleController::class, 'destroy'])->name('destroy')->middleware('role_or_permission:admin|role-delete');
 
+Route::get('/permissions', [RoleController::class, 'permissions'])->name('permissions.index')->middleware('role_or_permission:admin|role-list');
+Route::get('/permissions/create', [RoleController::class, 'permissions_create'])->name('permissions.create')->middleware('role_or_permission:admin|role-create');
+Route::post('/permissions/store', [RoleController::class, 'permissions_store'])->name('permissions.store')->middleware('role_or_permission:admin|role-create');
+Route::get('/permissions/edit/{id}', [RoleController::class, 'permissions_edit'])->name('permissions.edit')->middleware('role_or_permission:admin|role-edit');
+Route::put('/permissions/update/{id}', [RoleController::class, 'permissions_update'])->name('permissions.update')->middleware('role_or_permission:admin|role-edit');
+Route::get('/permissions/destroy/{id}', [RoleController::class, 'permissions_destroy'])->name('permissions.destroy')->middleware('role_or_permission:admin|role-delete');
 
 
 //Basic Info

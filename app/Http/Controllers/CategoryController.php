@@ -19,6 +19,44 @@ use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
+    public function departmentListApi(Request $request)
+    {
+        $query = Department::query();
+
+        if ($request->filled('search')) {
+            $query->where('department_name', 'LIKE', "%{$request->search}%");
+        }
+
+        $departments = $query
+            ->orderBy('department_name', 'asc')
+            ->get(['id', 'department_name']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $departments,
+        ]);
+    }
+
+    public function departmentStoreApi(Request $request)
+    {
+        $request->validate([
+            'department_name' => 'required|unique:departments,department_name',
+        ]);
+
+        $department = Department::create([
+            'department_name' => $request->department_name,
+        ]);
+
+        $departments = Department::orderBy('department_name', 'asc')
+            ->get(['id', 'department_name']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Department created successfully',
+            'data' => $departments,
+        ], 201);
+    }
+
     function department(Request $request)
     {
         $search = $request->input('search', '');
@@ -86,6 +124,44 @@ class CategoryController extends Controller
 
 
     //designation
+    public function designationListApi(Request $request)
+    {
+        $query = Designation::query();
+
+        if ($request->filled('search')) {
+            $query->where('designation_name', 'LIKE', "%{$request->search}%");
+        }
+
+        $designations = $query
+            ->orderBy('designation_name', 'asc')
+            ->get(['id', 'designation_name']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $designations,
+        ]);
+    }
+
+    public function designationStoreApi(Request $request)
+    {
+        $request->validate([
+            'designation_name' => 'required|unique:designations,designation_name',
+        ]);
+
+        Designation::create([
+            'designation_name' => $request->designation_name,
+        ]);
+
+        $designations = Designation::orderBy('designation_name', 'asc')
+            ->get(['id', 'designation_name']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Designation created successfully',
+            'data' => $designations,
+        ], 201);
+    }
+
     function designation(Request $request)
     {
         $search = $request->input('search', '');
@@ -148,6 +224,63 @@ class CategoryController extends Controller
     }
 
     //product Type
+      function producttype(Request $request)
+    {
+        $search = $request->input('search', '');
+        $perPage = $request->input('per_page', 13);
+
+        $query = ProductType::query();
+
+        if ($search) {
+            $query->where('product', 'LIKE', "%{$search}%");
+        }
+
+        $query->orderBy('product', 'asc');
+
+        $all_producttypes = $perPage === 'all'
+            ? $query->get()
+            : $query->paginate((int)$perPage)->appends($request->except('page'));
+
+        return view('admin.category.producttype.producttype_list', [
+            'all_producttypes' => $all_producttypes,
+            'search' => $search,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    public function productTypeListApi(Request $request)
+    {
+        $query = ProductType::query();
+
+        if ($request->filled('search')) {
+            $query->where('product', 'LIKE', "%{$request->search}%");
+        }
+
+        $productTypes = $query
+            ->orderBy('product', 'asc')
+            ->get(['id', 'product']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $productTypes,
+        ]);
+    }
+
+    function productTypeStoreApi(Request $request)
+    {
+        $request->validate([
+            'product' => 'required|unique:product_types,product',
+        ]);
+
+        ProductType::insert([
+            'product' => $request->product,
+            'created_at' => Carbon::now(),
+
+        ]);
+        return back()->with('add_producttype', 'Product Type added successfully');
+    }
+
+    
     function product_type(Request $request)
     {
         $search = $request->input('search', '');
@@ -192,6 +325,48 @@ class CategoryController extends Controller
     }
 
     // Supplier
+     public function supplierListApi(Request $request)
+    {
+        $query = Supplier::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('supplier_name', 'LIKE', "%{$request->search}%")
+                  ->orWhere('phone', 'LIKE', "%{$request->search}%")
+                  ->orWhere('email', 'LIKE', "%{$request->search}%");
+            });
+        }
+
+        $suppliers = $query
+            ->orderBy('supplier_name', 'asc')
+            ->get(['id', 'supplier_name', 'phone', 'email']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $suppliers,
+        ]);
+    }
+
+    public function supplierStoreApi(Request $request)
+    {
+        $request->validate([
+            'supplier_name' => 'required',
+            'email' => 'nullable|email',
+        ]);
+
+        Supplier::create($request->only(['supplier_name', 'address', 'phone', 'email', 'web', 'others1', 'others2']));
+
+        $suppliers = Supplier::orderBy('supplier_name', 'asc')
+            ->get(['id', 'supplier_name', 'phone', 'email']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Supplier created successfully',
+            'data' => $suppliers,
+        ], 201);
+    }
+
+
     function supplier(Request $request)
     {
         $search = $request->input('search', '');
@@ -243,6 +418,44 @@ class CategoryController extends Controller
 
 
     //brand
+
+     public function brandListApi(Request $request)
+    {
+        $query = Brand::query();
+
+        if ($request->filled('search')) {
+            $query->where('brand_name', 'LIKE', "%{$request->search}%");
+        }
+
+        $brands = $query
+            ->orderBy('brand_name', 'asc')
+            ->get(['id', 'brand_name', 'others']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $brands,
+        ]);
+    }
+
+    public function brandStoreApi(Request $request)
+    {
+        $request->validate([
+            'brand_name' => 'required|unique:brands,brand_name',
+            'others' => 'nullable|string',
+        ]);
+
+        Brand::create($request->only(['brand_name', 'others']));
+
+        $brands = Brand::orderBy('brand_name', 'asc')
+            ->get(['id', 'brand_name', 'others']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Brand created successfully',
+            'data' => $brands,
+        ], 201);
+    }
+
     function brand(Request $request)
     {
         $search = $request->input('search', '');
@@ -285,6 +498,47 @@ class CategoryController extends Controller
     }
 
     //status
+
+     public function statusListApi(Request $request)
+    {
+        $query = Status::query();
+
+        if ($request->filled('search')) {
+            $query->where('status_name', 'LIKE', "%{$request->search}%");
+        }
+
+        $statuses = $query
+            ->orderBy('status_name', 'asc')
+            ->get(['id', 'status_name', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $statuses,
+        ]);
+    }
+
+    public function statusStoreApi(Request $request)
+    {
+        $request->validate([
+            'status_name' => 'required|unique:statuses,status_name',
+        ]);
+
+        Status::create([
+            'status_name' => $request->status_name,
+            'description' => $request->description,
+        ]);
+
+        $statuses = Status::orderBy('status_name', 'asc')
+            ->get(['id', 'status_name', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status created successfully',
+            'data' => $statuses,
+        ], 201);
+    }
+
+
     function status()
     {
         $all_status = Status::paginate(13);
@@ -310,6 +564,45 @@ class CategoryController extends Controller
     }
 
     //size_mesurment
+     public function sizeMesurmentListApi(Request $request)
+    {
+        $query = SizeMaseurment::query();
+
+        if ($request->filled('search')) {
+            $query->where('size', 'LIKE', "%{$request->search}%");
+        }
+
+        $sizes = $query
+            ->orderBy('size', 'asc')
+            ->get(['id', 'size', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $sizes,
+        ]);
+    }
+
+    public function sizeMesurmentStoreApi(Request $request)
+    {
+        $request->validate([
+            'size' => 'required',
+        ]);
+
+        SizeMaseurment::create([
+            'size' => $request->size,
+            'description' => $request->description,
+        ]);
+
+        $sizes = SizeMaseurment::orderBy('size', 'asc')
+            ->get(['id', 'size', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Size created successfully',
+            'data' => $sizes,
+        ], 201);
+    }
+
     function size_mesurment()
     {
         $all_SizeMaseurment = SizeMaseurment::paginate(13);
@@ -334,6 +627,47 @@ class CategoryController extends Controller
     }
 
     //color
+
+      public function colorListApi(Request $request)
+    {
+        $query = Color::query();
+
+        if ($request->filled('search')) {
+            $query->where('color', 'LIKE', "%{$request->search}%");
+        }
+
+        $colors = $query
+            ->orderBy('color', 'asc')
+            ->get(['id', 'color', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $colors,
+        ]);
+    }
+
+    public function colorStoreApi(Request $request)
+    {
+        $request->validate([
+            'color' => 'required',
+        ]);
+
+        Color::create([
+            'color' => $request->color,
+            'description' => $request->description,
+        ]);
+
+        $colors = Color::orderBy('color', 'asc')
+            ->get(['id', 'color', 'description']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Color created successfully',
+            'data' => $colors,
+        ], 201);
+    }
+
+
     function color()
     {
         $all_color = Color::paginate(13);
@@ -358,6 +692,47 @@ class CategoryController extends Controller
     }
 
     //company
+    public function companyListApi(Request $request)
+    {
+        $query = Company::query();
+
+        if ($request->filled('search')) {
+            $query->where('company', 'LIKE', "%{$request->search}%");
+        }
+
+        $companies = $query
+            ->orderBy('company', 'asc')
+            ->get(['id', 'company', 'description', 'location']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $companies,
+        ]);
+    }
+
+    public function companyStoreApi(Request $request)
+    {
+        $request->validate([
+            'company' => 'required|unique:companies,company',
+        ]);
+
+        Company::create([
+            'company' => $request->company,
+            'description' => $request->description,
+            'location' => $request->location,
+        ]);
+
+        $companies = Company::orderBy('company', 'asc')
+            ->get(['id', 'company', 'description', 'location']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Company created successfully',
+            'data' => $companies,
+        ], 201);
+    }
+
+    
     function company_list()
     {
         $all_company = Company::paginate(13);

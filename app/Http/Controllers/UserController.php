@@ -16,6 +16,34 @@ use App\Exports\UserExport;
 
 class UserController extends Controller
 {
+    /* ===================== API USERS LIST ===================== */
+    public function apiUsers(Request $request)
+    {
+        if (!auth()->check()) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        $query = User::query();
+
+        if (!auth()->user()->hasRole('admin')) {
+            $query->where('id', auth()->id());
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', "%{$request->search}%")
+                    ->orWhere('email', 'like', "%{$request->search}%");
+            });
+        }
+
+        $users = $query->latest()->get(['id', 'name', 'email']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $users,
+        ]);
+    }
+
     /* ===================== USERS LIST ===================== */
     public function users(Request $request)
     {
