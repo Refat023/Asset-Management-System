@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProductType;
 use App\Models\SizeMaseurment;
 use App\Models\Store;
+use App\Models\Company;
 use Illuminate\Support\Facades\DB;
 
 use Illuminate\Http\Request;
@@ -142,10 +143,11 @@ class HomeController extends Controller
             }
         }
         $product_summary_global_attire = [];
-        if ($hasGlobalAttire) {
+        $globalAttireCompanyId = Company::where('company', 'Global Attire')->value('id');
+        if ($hasGlobalAttire && $globalAttireCompanyId) {
             $product_summary_global_attire = DB::select(
-                'SELECT asset_type, units_id, COUNT(*) as TotalAssets, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as IssueQty, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as WastProduct, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as StockQty FROM stores WHERE company_id = 5 AND created_by = ? AND checkstatus NOT IN (?, ?) GROUP BY asset_type, units_id',
-                ['ISSUED', 'Wast Products', 'INSTOCK', auth()->id(), 'DELETE', 'ARCHIVE']
+                'SELECT asset_type, units_id, COUNT(*) as TotalAssets, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as IssueQty, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as WastProduct, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as StockQty FROM stores WHERE company_id = ? AND created_by = ? AND checkstatus NOT IN (?, ?) GROUP BY asset_type, units_id',
+                ['ISSUED', 'Wast Products', 'INSTOCK', $globalAttireCompanyId, auth()->id(), 'DELETE', 'ARCHIVE']
             );
 
             foreach ($product_summary_global_attire as $product_summary) {
@@ -206,6 +208,7 @@ class HomeController extends Controller
             'product_summary_bp' => $product_summary_bp,
             'product_summary_bt_ind' => $product_summary_bt_ind,
             'product_summary_global_attire' => $product_summary_global_attire,
+            'globalAttireCompanyId' => $globalAttireCompanyId,
             'assetCount' => $assetCount,
             'laptopCount' => $laptopCount,
             'desktopCount' => $desktopCount,

@@ -395,7 +395,7 @@
                     <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                         <div class="card">
                             <div class="card-header">
-                                <a href="{{ route('stock_summary', ['company' => 5]) }}" style="text-decoration: none; cursor: pointer;" class="text-dark company-link">
+                                <a href="{{ route('stock_summary', ['company' => $globalAttireCompanyId]) }}" style="text-decoration: none; cursor: pointer;" class="text-dark company-link">
                                     <h2 class="h5" style="margin: 0; transition: color 0.3s;">GLOBAL ATIRE</h2>
                                 </a>
                             </div>
