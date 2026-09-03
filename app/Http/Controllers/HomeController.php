@@ -34,9 +34,10 @@ class HomeController extends Controller
 
         $isAdminManager = in_array($role->name, ['Admin', 'Manager']);
         $hasGlobalAttire = false;
+        $globalAttireCompanyId = Company::where('company', 'Global Attire')->value('id');
 
         if ($isAdminManager) {
-            $companies = [1, 2, 3, 4, 5];
+            $companies = Company::pluck('id')->all();
         } else {
             $companies = [];
             $globalPermissions = [
@@ -49,16 +50,24 @@ class HomeController extends Controller
             foreach ($globalPermissions as $permissionName) {
                 if ($role->hasPermissionTo($permissionName)) {
                     $hasGlobalAttire = true;
-                    $companies = [1, 2, 3, 4, 5];
+                    $companies = $globalAttireCompanyId ? [$globalAttireCompanyId] : [];
                     break;
                 }
             }
 
             if (empty($companies)) {
-                if ($role->hasPermissionTo('view BHML INDUSTRIES LTD.')) $companies[] = 1;
-                if ($role->hasPermissionTo('view BETTEX')) $companies[] = 2;
-                if ($role->hasPermissionTo('view BETTEX PREMIUM')) $companies[] = 3;
-                if ($role->hasPermissionTo('view BETTEX BRIDGE')) $companies[] = 4;
+                $companyPermissions = [
+                    'view BHML INDUSTRIES LTD.' => 1,
+                    'view BETTEX' => 2,
+                    'view BETTEX PREMIUM' => 3,
+                    'view BETTEX BRIDGE' => 4,
+                ];
+
+                foreach ($companyPermissions as $permissionName => $companyId) {
+                    if ($role->hasPermissionTo($permissionName)) {
+                        $companies[] = $companyId;
+                    }
+                }
             }
         }
 
@@ -131,19 +140,27 @@ class HomeController extends Controller
                 $desktops = DB::table('stores')
                     ->where('asset_type', 2)
                     ->whereIn('company_id', $companies)
+                    ->when($hasGlobalAttire, function ($query) {
+                        return $query->where('created_by', auth()->id());
+                    })
                     ->get();
                 $laptops = DB::table('stores')
                     ->where('asset_type', 1)
                     ->whereIn('company_id', $companies)
+                    ->when($hasGlobalAttire, function ($query) {
+                        return $query->where('created_by', auth()->id());
+                    })
                     ->get();
                 $printers = DB::table('stores')
                     ->where('asset_type', 3)
                     ->whereIn('company_id', $companies)
+                    ->when($hasGlobalAttire, function ($query) {
+                        return $query->where('created_by', auth()->id());
+                    })
                     ->get();
             }
         }
         $product_summary_global_attire = [];
-        $globalAttireCompanyId = Company::where('company', 'Global Attire')->value('id');
         if ($hasGlobalAttire && $globalAttireCompanyId) {
             $product_summary_global_attire = DB::select(
                 'SELECT asset_type, units_id, COUNT(*) as TotalAssets, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as IssueQty, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as WastProduct, SUM(CASE WHEN checkstatus = ? THEN 1 ELSE 0 END) as StockQty FROM stores WHERE company_id = ? AND created_by = ? AND checkstatus NOT IN (?, ?) GROUP BY asset_type, units_id',
@@ -155,10 +172,14 @@ class HomeController extends Controller
                 $product_summary->units = SizeMaseurment::find($product_summary->units_id);
             }
         }
-        $product_summary_bt = DB::select("CALL sp_product_summary_bt()");
-        $product_summary_bhml = DB::select("CALL sp_product_summary_bhml()");
-        $product_summary_bp = DB::select("CALL sp_product_summary_bp()");
-        $product_summary_bt_ind = DB::select("CALL sp_product_summary_bt_ind()");
+        $product_summary_bt = $isAdminManager || in_array(2, $companies)
+            ? DB::select("CALL sp_product_summary_bt()") : [];
+        $product_summary_bhml = $isAdminManager || in_array(1, $companies)
+            ? DB::select("CALL sp_product_summary_bhml()") : [];
+        $product_summary_bp = $isAdminManager || in_array(3, $companies)
+            ? DB::select("CALL sp_product_summary_bp()") : [];
+        $product_summary_bt_ind = $isAdminManager || in_array(4, $companies)
+            ? DB::select("CALL sp_product_summary_bt_ind()") : [];
         //dd($product_summary_bhml);
 
 

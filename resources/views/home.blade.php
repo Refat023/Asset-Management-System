@@ -240,6 +240,7 @@
         <div class="container">
             <div class="row">
                 <!-- BETTEX HK LTD. -->
+                @if (!empty($product_summary_bt))
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                     <div class="card">
                         <div class="card-header">
@@ -275,8 +276,10 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- BHML INDUSTRIES LTD. -->
+                @if (!empty($product_summary_bhml))
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                     <div class="card">
                         <div class="card-header">
@@ -312,8 +315,10 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 <!-- BETTEX PREMIUM -->
+                @if (!empty($product_summary_bp))
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                     <div class="card">
                         <div class="card-header">
@@ -349,12 +354,14 @@
                         </div>
                     </div>
                 </div>
+                @endif
             </div>
         </div>
 
         <div class="container">
             <div class="row">
                 <!-- BETTEX INDIA -->
+                @if (!empty($product_summary_bt_ind))
                 <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                     <div class="card">
                         <div class="card-header">
@@ -390,6 +397,7 @@
                         </div>
                     </div>
                 </div>
+                @endif
 
                 @if (!empty($product_summary_global_attire))
                     <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
